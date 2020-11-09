@@ -79,8 +79,6 @@ object Question3 extends App {
       val broadcaster = builder.add(Broadcast[RideCovered](4))
       val merger = builder.add(Merge[RideCovered](4))
 
-      //ileIO.toPath(file)
-
       val failBuffer = Flow[RideCovered].buffer(1, OverflowStrategy.fail)
       val backPressureBuffer = Flow[RideCovered].buffer(1, OverflowStrategy.backpressure)
       val dropHeadBuffer = Flow[RideCovered].buffer(1, OverflowStrategy.dropHead)
@@ -91,9 +89,9 @@ object Question3 extends App {
       val onlyCasualMemFilter: Flow[RideCovered, RideCovered, NotUsed] = Flow[RideCovered].filter(a => a.member == "casual")
 
       broadcaster.out(0) ~> failBuffer ~> stations96And239Filter ~> merger.in(0)
-      broadcaster.out(1) ~> failBuffer ~> stations96And239Filter ~> merger.in(1)
-      broadcaster.out(2) ~> failBuffer ~> stations234And110Filter ~> onlyCasualMemFilter ~> merger.in(2)
-      broadcaster.out(3) ~> failBuffer ~> stations234And110Filter ~> onlyCasualMemFilter ~> merger.in(3)
+      broadcaster.out(1) ~> backPressureBuffer ~> stations96And239Filter ~> merger.in(1)
+      broadcaster.out(2) ~> dropHeadBuffer ~> stations234And110Filter ~> onlyCasualMemFilter ~> merger.in(2)
+      broadcaster.out(3) ~> dropTailBuffer ~> stations234And110Filter ~> onlyCasualMemFilter ~> merger.in(3)
 
       FlowShape(broadcaster.in, merger.out)
     }
